@@ -1,0 +1,579 @@
+PS C:\Users\njmau\Documents\School (UTSA)\Spring2020\CS3723 - PL\p3> clisp
+  i i i i i i i       ooooo    o        ooooooo   ooooo   ooooo
+  I I I I I I I      8     8   8           8     8     o  8    8
+  I  \ `+' /  I      8         8           8     8        8    8
+   \  `-+-'  /       8         8           8      ooooo   8oooo
+    `-__|__-'        8         8           8           8  8
+        |            8     o   8           8     o     8  8
+  ------+------       ooooo    8oooooo  ooo8ooo   ooooo   8
+
+Welcome to GNU CLISP 2.49 (2010-07-07) <http://clisp.cons.org/>
+
+Copyright (c) Bruno Haible, Michael Stoll 1992, 1993
+Copyright (c) Bruno Haible, Marcus Daniels 1994-1997
+Copyright (c) Bruno Haible, Pierpaolo Bernardi, Sam Steingold 1998
+Copyright (c) Bruno Haible, Sam Steingold 1999-2000
+Copyright (c) Sam Steingold, Bruno Haible 2001-2010
+
+Type :h and hit Enter for context help.
+
+[1]> (load "p3Lisp.txt" :echo T :print T)
+;; Loading file p3Lisp.txt ...
+;;p3Lisp.txt written by Nathan Mauch
+;;checkSentence
+;;Parameters:
+;;   I  parse   object populated with a sentenced to be parsed
+;;Purpose:
+;;   This function parses through a sentence according to grammar standards.
+;;Returns:
+;;   T    if the sentence follows grammar standards
+;;   NIL  if the sentence does not follow grammar standards
+(defun checkSentence (parse)
+    (PROG ()
+                (if (not (checkNP parse 'subject))
+                (return NIL) )
+
+                (setf verb (getToken parse))
+                (if (not (isa verb 'verb))
+                        (return NIL) )
+                (putp 'verb parse (list verb))
+
+                (setf saveCursor (getCursor parse))
+                (if (not (checkPrepPhrase parse 'indirectObj))
+                        (setCursor parse saveCursor) )
+
+                (setf saveCursor (getCursor parse))
+                (if (not (checkNP parse 'directObj))
+                        (setCursor parse saveCursor) )
+
+                (setf saveCursor (getCursor parse))
+                (if (not (checkPrepPhrase parse 'indirectObj))
+                        (setCursor parse saveCursor) )
+
+                (setf token (getToken parse))
+                (if (not (NULL token))
+                        (return NIL) )
+
+                (return T)
+        )
+)
+CHECKSENTENCE
+
+
+;; resetPartsOfSpeech
+;; Paramaters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  partsOfSpeech  name of the list
+;; Purpose:
+;;     Resets all the parts of speech back to NIL
+(defun resetPartsOfSpeech (parse &rest partsOfSpeech)
+         (dolist (resetWords partsOfSpeech)
+                        (putp resetWords parse NIL)
+         )
+)
+RESETPARTSOFSPEECH
+
+
+;; set_isa
+;; Parameters:
+;;    I  partOfSpeech  Type of speech that is being identified
+;;    I  words         the words to be defined with that part of speech
+;; Purpose:
+;;    This macro defines each word in to a dictionary of the part of speech
+(defmacro set_isa (partOfSpeech &rest words)
+        (dolist (word words T)
+        (putp word word-dict partOfSpeech)
+        )
+)
+SET_ISA
+
+
+
+;; isa
+;; Parameters:
+;;    I word  Word whose part of speech needs to be checked
+;;    I partOfSpeech  Part of speech for word to be checked against
+;; Purpose:
+;;     Checks a word if it is a part of specch's dictionary
+(defun isa (word partOfSpeech)
+     (let ((wordIs (getp word word-dict)))
+           (eql wordIs partOfSpeech)
+     )
+)
+ISA
+
+
+;; checkNp
+;; Parameters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  objNm   The name of the part of speech
+;; Purpose:
+;;     Is checking if certain section the sentence is a noun phrase and will add them to
+;;     the according part of speech list
+;; Returns:
+;;     T   If finds proper grammar structure for the noun phrase
+;;     NIL If does not find proper structure for a noun phrase
+(defun checkNP (parse objNm)
+        (PROG ()
+                (setf token (getToken parse))
+
+                (if (isa token 'article)
+                        (let ()
+                                (setf article token token NIL)
+                                (setf token (getToken parse))
+                                (if (isa token 'adjective)
+                                        (let ()
+                                                (setf adjective token token NIL)
+                                                (setf token (getToken parse))
+                                                (if (isa token 'noun)
+                                                        (let ()
+                                                                (setf noun token token NIL)
+                                                                (putp objNm parse (list article adjective noun))
+                                                                (return T)
+                                                        )
+                                                )
+                                        )
+                                        (if (not (isa token 'noun))
+                                                (return NIL)
+                                                (let ()
+                                                        (setf noun token token NIL)
+                                                        (putp objNm parse (list article noun))
+                                                        (return T)
+                                                )
+                                        )
+                                )
+                        )
+                )
+
+                (if (isa token 'adjective)
+                        (let ()
+                                (setf adjective token token NIL)
+                                (setf token (getToken parse))
+                                (if (isa token 'noun)
+                                        (let ()
+                                                (setf noun token token NIL)
+                                                (putp objNm parse (list adjective noun))
+                                                (return T)
+                                        )
+                                        (return NIL)
+                                )
+                        )
+                )
+                (if (not (isa token 'noun))
+                        (return NIL)
+                )
+                (putp objNm parse (list token))
+                (return T)
+        )
+)
+CHECKNP
+
+;; checkPrepPhrase
+;; Parameters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  objNm   The name of the part of speech
+;; Purpose:
+;;     Is checking if certain section the sentence is a prepositional phrase and will add them to
+;;     the according part of speech list
+;; Returns:
+;;     T   If finds proper grammar structure for the prepositional phrase
+;;     NIL If does not find proper structure for a prepositional phrase
+(defun checkPrepPhrase (parse objNm)
+        (prog ()
+                (setf prep (getToken parse))
+                (if (not (isa prep 'prep))
+                        (return NIL) )
+                (if (not (checkNP parse objNm))
+                        (return NIL) )
+                (putp 'prep parse (list prep))
+                (return T)
+        )
+)
+CHECKPREPPHRASE
+
+;; Loaded file p3Lisp.txt
+T
+[2]> (load "p3LispDef.txt" :echo T :print T)
+;; Loading file p3LispDef.txt ...
+;;; useful functions for LISP natural language parsing program
+
+;;; Set up the parse-obj and word-dict
+(setf parse-obj (MAKE-HASH-TABLE))
+#S(HASH-TABLE :TEST FASTHASH-EQL)
+
+(setf word-dict (MAKE-HASH-TABLE))
+#S(HASH-TABLE :TEST FASTHASH-EQL)
+
+(setf table-ht  (MAKE-HASH-TABLE))
+#S(HASH-TABLE :TEST FASTHASH-EQL)
+
+
+
+;;; processSentence
+;;;    Parameters:
+;;;       sentence - a list of words making a sentence
+;;;    Purpose:
+;;;       - Sets up necessary information (see below) and invokes the student's checkSentence
+;;;         function.
+;;;       - Since the student's checkSentence sets the parts of speech, processSentence prints
+;;;         those parts of speech.
+;;;       - Returns T if the sentence is a valid sentence.  Otherwise, NIL is returned.
+;;;    Notes:
+;;;       - Sets the parse-obj hash table to contain the sentence
+;;;       - Sets the cursor position to zero.
+;;;       - Uses resetPartsOfSpeech to reset the values of each part of speech.
+;;;       - Prints the sentence
+;;;       - Invokes checkSentence to check for valid syntax and prints
+;;;         the result.
+;;;       - Prints the value for each part of speech.  If the sentence contained a
+;;;       - Sentences will not contain punctuation since
+;;;             -- commas have a meaning in Common LISP associated with backquote
+;;;             -- periods are used for dotted pairs
+;;;
+
+(defun processSentence(sentence)
+    (PROG (result)
+        ;;; Save the sentence in parse-obj.
+        (putp 'sentence parse-obj sentence)
+        ;;; Set the cursor position to 0.
+        (putp 'cursor parse-obj 0)
+
+        ;;; reset the parts of speech to NIL
+        (resetPartsOfSpeech parse-obj 'verb 'directObj 'prep 'indirectObj 'subject )
+        (resetPartsOfSpeech parse-obj 'SubConjunction 'SubSubject 'SubVerb 'SubDirectObj 'SubIndirectObj 'SubPrep)
+
+        (format T "~% ******************************************************************")
+        (format T "~%  ~a" sentence)
+        (setf result (checkSentence parse-Obj))
+        (format T "~%    checkSentence returned ~a" result)
+        (format T "~%    subject= ~a" (getp 'subject parse-obj))
+        (format T "~%    verb= ~a" (getp 'verb parse-obj))
+        (format T "~%    directObj= ~a" (getp 'directObj parse-obj))
+        (format T "~%    prep= ~a" (getp 'prep parse-obj))
+        (format T "~%    indirectObj= ~a" (getp 'indirectObj parse-obj))
+
+        ;;; if we have a subordinate clause, show it
+        (cond ((or  (getp 'SubConjunction parse-obj)
+                    (getp 'SubSubject parse-obj))
+                (format T "~%    SubConjunction= ~a" (getp 'SubConjunction parse-obj))
+                (format T "~%    SubSubject= ~a" (getp 'SubSubject parse-obj))
+                (format T "~%    SubVerb= ~a" (getp 'SubVerb parse-obj))
+                (if (getp 'SubDirectObj parse-obj)
+                    (format T "~%    SubDirectObj= ~a" (getp 'SubDirectObj parse-obj)))
+                (cond ((getp 'SubPrep parse-obj)
+                          (format T "~%    SubPrep= ~a" (getp 'SubPrep parse-obj))
+                          (format T "~%    SubIndirectObj= ~a" (getp 'SubIndirectObj parse-obj))
+                          ))
+        ))
+        (return result)
+    ) )
+PROCESSSENTENCE
+
+
+;;; putp
+;;;    Parameters:
+;;;       symbol   - symbol to be given the property value
+;;;       ht       - hash table to store the symbol and its property value
+;;;       value    - the property value
+;;;    Purpose:
+;;;       stores the property value for the symbol in the specified hash table
+;;;    Notes:
+;;;       If the symbol isn't an ATOM, putp breaks execution with an ERROR.
+;;;    Example Usage:
+;;;       (putp 'prep parse preposition)
+;;;       (putp word word-dict partOfSpeech)
+
+(defun putp (symbol ht value)
+    (if (ATOM symbol)
+        (setf (gethash symbol ht) value)
+        (ERROR "~s is not a valid symbol for putp" symbol)
+    )
+)
+PUTP
+
+
+;;; getp
+;;;    Parameters:
+;;;       symbol   - symbol about which we want its property value
+;;;       ht       - hash table which stores the symbol and its property value
+;;;    Purpose:
+;;;       Returns the property value for the symbol in the specified hash table
+;;;       If not found, it returns NIL.
+;;;    Example Usage:
+;;;       (getp word word-dict)  would return the partOfSpeech for that word
+;;;       (getp 'sentence parse-obj)  would return the original sentence from the parse-obj.
+(defun getp (symbol ht)
+     (gethash symbol ht) )
+GETP
+
+
+;;; getCursor
+;;;    Parameters:
+;;;       parse - the parse object containing a sentence, cursor position, and
+;;;               value for each part of speech
+;;;    Purpose:
+;;;       returns the current cursor position (relative to zero)
+(defun getCursor (parse)
+    (getp 'cursor parse) )
+GETCURSOR
+
+
+;;; setCursor
+;;;    Parameters:
+;;;       parse - the parse object containing a sentence, cursor position, and
+;;;               value for each part of speech
+;;;       cursorPosition - new cursor position
+;;;    Purpose:
+;;;       Sets the value of the cursor position (relative to zero) in the
+;;;       parse object
+;;;    Notes:
+;;;       If the cursorPosition isn't a numeric, setCursor breaks execution
+;;;       with an ERROR.
+(defun setCursor (parse cursorPosition)
+    (if (numberp cursorPosition)
+        (putp 'cursor parse cursorPosition)
+        (ERROR "~s is not a numeric argument for setCursor" cursorPosition)
+    )
+)
+SETCURSOR
+
+
+;;; getToken
+;;;    Parameters:
+;;;       parse - the parse object containing a sentence, cursor position, and
+;;;               value for each part of speech
+;;;    Purpose:
+;;;       returns the next token from the sentence.  If there are no more
+;;;       tokens, it returns NIL.
+;;;    Notes:
+;;;       This modifies the cursor position after getting the current token
+;;;       at the old position.
+
+(defun getToken (parse)
+    (prog (temp)
+        (setf temp (nth (getp  'cursor parse) (getp  'sentence parse)))
+        (setCursor parse (1+ (getp 'cursor parse)))
+        ;; (print (list "getToken=" temp))
+        (return temp) ) )
+GETTOKEN
+
+
+
+
+ ;;; defaulting doingExtra to NIL
+ (setf doingExtra NIL)
+NIL
+
+
+
+
+;; Loaded file p3LispDef.txt
+T
+[3]> (load "p3LispRun.txt" :echo T :print T)
+;; Loading file p3LispRun.txt ...
+;;; p3LispRun.txt - run the student's code
+;;; Use set_isa to set the part of speech for each of the words.
+(set_isa article a an the)
+T
+
+(set_isa noun boy dog ball Mickey Pluto Goofy Larry Rocky students mud banana home he bowl cheese girl )
+T
+
+(set_isa verb pet sat threw taught ran ate has licked )
+T
+
+(set_isa prep on of to in for at)
+T
+
+(set_isa adjective brilliant large rancid Halloween smelly new sleeping many strange ripe happy scared)
+T
+
+(cond ( doingExtra
+          (set_isa noun pet home costume people sad nap vacation mud)
+          (set_isa verb was made left barfed took slept dreamed were)
+          (set_isa subConjunction while after )
+))
+NIL
+
+
+ ;;;
+ ;;; 1.  Subject Verb DirectObj
+ ;;;
+ (processSentence '(The boy pet the dog ))
+ ******************************************************************
+  (THE BOY PET THE DOG)
+    checkSentence returned T
+    subject= (THE BOY)
+    verb= (PET)
+    directObj= (THE DOG)
+    prep= NIL
+    indirectObj= NIL
+T
+
+ (processSentence '(The dog ran home))
+ ******************************************************************
+  (THE DOG RAN HOME)
+    checkSentence returned T
+    subject= (THE DOG)
+    verb= (RAN)
+    directObj= (HOME)
+    prep= NIL
+    indirectObj= NIL
+T
+
+ (processSentence '(Mickey ate a banana))
+ ******************************************************************
+  (MICKEY ATE A BANANA)
+    checkSentence returned T
+    subject= (MICKEY)
+    verb= (ATE)
+    directObj= (A BANANA)
+    prep= NIL
+    indirectObj= NIL
+T
+
+ ;;;
+ ;;; 2.  Subject Verb [DirectObj] [Prep IndirectObj]
+ ;;;
+ (processSentence '(The boy threw the ball to the dog ))
+ ******************************************************************
+  (THE BOY THREW THE BALL TO THE DOG)
+    checkSentence returned T
+    subject= (THE BOY)
+    verb= (THREW)
+    directObj= (THE BALL)
+    prep= (TO)
+    indirectObj= (THE DOG)
+T
+
+ (processSentence '(The dog sat on the boy ))
+ ******************************************************************
+  (THE DOG SAT ON THE BOY)
+    checkSentence returned T
+    subject= (THE DOG)
+    verb= (SAT)
+    directObj= NIL
+    prep= (ON)
+    indirectObj= (THE BOY)
+T
+
+ (processSentence '(Larry taught brilliant students))
+ ******************************************************************
+  (LARRY TAUGHT BRILLIANT STUDENTS)
+    checkSentence returned T
+    subject= (LARRY)
+    verb= (TAUGHT)
+    directObj= (BRILLIANT STUDENTS)
+    prep= NIL
+    indirectObj= NIL
+T
+
+ (processSentence '(Mickey ate a large bowl of rancid cheese))
+ ******************************************************************
+  (MICKEY ATE A LARGE BOWL OF RANCID CHEESE)
+    checkSentence returned T
+    subject= (MICKEY)
+    verb= (ATE)
+    directObj= (A LARGE BOWL)
+    prep= (OF)
+    indirectObj= (RANCID CHEESE)
+T
+
+ (processSentence '(The smelly dog licked the happy boy))
+ ******************************************************************
+  (THE SMELLY DOG LICKED THE HAPPY BOY)
+    checkSentence returned T
+    subject= (THE SMELLY DOG)
+    verb= (LICKED)
+    directObj= (THE HAPPY BOY)
+    prep= NIL
+    indirectObj= NIL
+T
+
+ (processSentence '(The strange boy threw a ripe banana at the scared girl))
+ ******************************************************************
+  (THE STRANGE BOY THREW A RIPE BANANA AT THE SCARED GIRL)
+    checkSentence returned T
+    subject= (THE STRANGE BOY)
+    verb= (THREW)
+    directObj= (A RIPE BANANA)
+    prep= (AT)
+    indirectObj= (THE SCARED GIRL)
+T
+
+ ;;;
+ ;;; 3. Invalid sentences
+ ;;;
+ (processSentence '(The boy sat on the))
+ ******************************************************************
+  (THE BOY SAT ON THE)
+    checkSentence returned NIL
+    subject= (THE BOY)
+    verb= (SAT)
+    directObj= NIL
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ (processSentence '(Threw the ball at Mickey))
+ ******************************************************************
+  (THREW THE BALL AT MICKEY)
+    checkSentence returned NIL
+    subject= NIL
+    verb= NIL
+    directObj= NIL
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ (processSentence '(dog the sat on the boy))
+ ******************************************************************
+  (DOG THE SAT ON THE BOY)
+    checkSentence returned NIL
+    subject= (DOG)
+    verb= NIL
+    directObj= NIL
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ (processSentence '(Mickey threw the sat))
+ ******************************************************************
+  (MICKEY THREW THE SAT)
+    checkSentence returned NIL
+    subject= (MICKEY)
+    verb= (THREW)
+    directObj= NIL
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ (processSentence '(Larry taught brilliant ))
+ ******************************************************************
+  (LARRY TAUGHT BRILLIANT)
+    checkSentence returned NIL
+    subject= (LARRY)
+    verb= (TAUGHT)
+    directObj= NIL
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ (processSentence '(Larry taught students brilliant ))
+ ******************************************************************
+  (LARRY TAUGHT STUDENTS BRILLIANT)
+    checkSentence returned NIL
+    subject= (LARRY)
+    verb= (TAUGHT)
+    directObj= (STUDENTS)
+    prep= NIL
+    indirectObj= NIL
+NIL
+
+ ;;;
+ ;;; 4. Extra Credit #1 compound nouns and words being multiple p-o-s
+ ;;;
+ ;;; see if doing extra credit, return if not
+ (if (NULL doingExtra)
+    (abort))
+[4]>

@@ -1,0 +1,160 @@
+;;p3Lisp.txt written by Nathan Mauch
+;;checkSentence
+;;Parameters:
+;;   I  parse   object populated with a sentenced to be parsed
+;;Purpose:
+;;   This function parses through a sentence according to grammar standards.
+;;Returns:
+;;   T    if the sentence follows grammar standards
+;;   NIL  if the sentence does not follow grammar standards
+(defun checkSentence (parse)
+    (PROG ()
+		(if (not (checkNP parse 'subject))
+		(return NIL) )
+		
+		(setf verb (getToken parse))
+		(if (not (isa verb 'verb))
+			(return NIL) )
+		(putp 'verb parse (list verb))
+		
+		(setf saveCursor (getCursor parse))
+		(if (not (checkPrepPhrase parse 'indirectObj))
+			(setCursor parse saveCursor) )
+		
+		(setf saveCursor (getCursor parse))
+		(if (not (checkNP parse 'directObj))
+			(setCursor parse saveCursor) ) 
+		
+		(setf saveCursor (getCursor parse))
+		(if (not (checkPrepPhrase parse 'indirectObj))
+			(setCursor parse saveCursor) )
+
+		(setf token (getToken parse))
+		(if (not (NULL token))
+			(return NIL) )
+			
+		(return T)
+	)
+)
+
+;; resetPartsOfSpeech
+;; Paramaters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  partsOfSpeech  name of the list
+;; Purpose:
+;;     Resets all the parts of speech back to NIL 
+(defun resetPartsOfSpeech (parse &rest partsOfSpeech)
+         (dolist (resetWords partsOfSpeech)
+			(putp resetWords parse NIL)
+         )
+)
+
+;; set_isa
+;; Parameters:
+;;    I  partOfSpeech  Type of speech that is being identified
+;;    I  words         the words to be defined with that part of speech
+;; Purpose:
+;;    This macro defines each word in to a dictionary of the part of speech
+(defmacro set_isa (partOfSpeech &rest words)
+        (dolist (word words T)
+        (putp word word-dict partOfSpeech)
+        )
+)
+
+
+;; isa
+;; Parameters:
+;;    I word  Word whose part of speech needs to be checked
+;;    I partOfSpeech  Part of speech for word to be checked against 
+;; Purpose:
+;;     Checks a word if it is a part of specch's dictionary
+(defun isa (word partOfSpeech)
+     (let ((wordIs (getp word word-dict)))
+           (eql wordIs partOfSpeech)
+     )
+)
+
+;; checkNp
+;; Parameters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  objNm	  The name of the part of speech
+;; Purpose:
+;;     Is checking if certain section the sentence is a noun phrase and will add them to 
+;;     the according part of speech list
+;; Returns:
+;;     T   If finds proper grammar structure for the noun phrase
+;;     NIL If does not find proper structure for a noun phrase
+(defun checkNP (parse objNm)
+	(PROG ()
+		(setf token (getToken parse))
+		
+		(if (isa token 'article)
+			(let ()
+				(setf article token token NIL)
+				(setf token (getToken parse))
+				(if (isa token 'adjective)
+					(let ()
+						(setf adjective token token NIL)
+						(setf token (getToken parse))
+						(if (isa token 'noun)
+							(let ()
+								(setf noun token token NIL)
+								(putp objNm parse (list article adjective noun))
+								(return T)
+							)
+						)
+					)
+					(if (not (isa token 'noun))
+						(return NIL)
+						(let ()
+							(setf noun token token NIL)
+							(putp objNm parse (list article noun))
+							(return T)
+						)
+					)
+				)	
+			)		 
+		)
+	
+		(if (isa token 'adjective)
+			(let ()
+				(setf adjective token token NIL)
+				(setf token (getToken parse))
+				(if (isa token 'noun)
+					(let ()
+						(setf noun token token NIL)
+						(putp objNm parse (list adjective noun))
+						(return T)
+					)
+					(return NIL)
+				)
+			)
+		)
+		(if (not (isa token 'noun))
+			(return NIL) 
+		)	
+		(putp objNm parse (list token))
+		(return T)
+	)	
+)
+;; checkPrepPhrase
+;; Parameters:
+;;     I  parse   object populated with a sentenced to be parsed
+;;     I  objNm	  The name of the part of speech
+;; Purpose:
+;;     Is checking if certain section the sentence is a prepositional phrase and will add them to 
+;;     the according part of speech list
+;; Returns:
+;;     T   If finds proper grammar structure for the prepositional phrase
+;;     NIL If does not find proper structure for a prepositional phrase
+(defun checkPrepPhrase (parse objNm)
+	(prog ()
+		(setf prep (getToken parse))
+		(if (not (isa prep 'prep))
+			(return NIL) )
+		(if (not (checkNP parse objNm))
+			(return NIL) )
+		(putp 'prep parse (list prep))
+		(return T)
+	)
+)

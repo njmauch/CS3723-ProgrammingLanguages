@@ -1,0 +1,34 @@
+;; p2LispRun.txt 
+
+(insertNth '(X Y Z) 2 'FUN)
+(insertNth '(X Y Z) 4 'FUN)
+
+(reverseTop '(X Y Z))
+(reverseTop '(X (Y Z (A)) (W)))
+
+(reverseAll '(X Y Z))
+(reverseAll '(X (Y Z (A)) (W)))
+
+(removeNILTop '(NIL X NIL NIL Y  NIL Z))
+(removeNILTop '(X NIL Y NIL Z NIL))
+(removeNILTop '(NIL (X NIL Y) (NIL NIL)))
+
+(removeNILMost '(NIL X NIL NIL Y  NIL Z))
+(removeNILMost '(X NIL (Y NIL Z) NIL))
+(removeNILMost '(NIL (NIL) (X NIL Y) (NIL NIL) Z))
+(removeNILMost '(NIL ( (((((NIL) NIL)))))))
+
+(palindrome '(R A C E C A R))
+(palindrome '(W A S I T A C A R O R A C A T I S A W))
+(palindrome '(N I X O N))
+
+(evalEach '( (setf A 5) (print 'hello) (print 'there) A)) 
+(evalEach '( (setf x 10 ) (setf A '(x y z)) (print A) (setf B (car A)) (set B (+ 5 x)) ))
+(print B)
+(print X)
+
+;;; Extra Credit
+(removeNILAll '(NIL X NIL NIL Y  NIL Z))
+(removeNILAll '(X NIL (Y NIL Z) NIL))
+(removeNILAll '(NIL (NIL) (X NIL Y) (NIL NIL) Z))
+(removeNILAll '(NIL ( (((((NIL) NIL)))))))

@@ -1,0 +1,1188 @@
+Metadata
+Node Type  Beg Attr Sub Total Sz
+Customer      0           48
+		Attribute Name Type Offset Size
+		customerId       S       0    8
+		name             S       8   16
+		pFirstItem       P      24    8
+		pNextCust        P      32    8
+		balance          D      40    8
+LineItem      5           32
+		Attribute Name Type Offset Size
+		productId        S       0   10
+		iQtyReq          I      12    4
+		dCost            D      16    8
+		pNextItem        P      24    8
+* 0. See if Heap is one huge node
+*
+>>> DUMP 
+Heap begins at 0173A070, free head is 0173A070
+	Address  Mem   Size NodeType DataPointer
+	0173A070 Free   900
+			Next:00000000
+* 1. Allocate three nodes
+>>> ALLOC C111 Customer 111,Sal A Mander,NULL,NULL,100.00
+>>> PRTNODE C111
+	Alloc Address  Size Node Type Data Address  
+ 	0173A070        53      0     0173A075
+		Attr Name      Type Value     
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  100.000000
+>>> ALLOC C222 Customer 222,Barb Wire,NULL,NULL,200.00
+>>> ALLOC PPF001 LineItem PPF001,5,9.95,NULL
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A0FF
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF Free   757
+			Next:00000000
+*
+* 2. associate customer 111 with a next pointing to 222
+*
+>>> ASSOC C111 pNextCust C222
+* customer 111's  pNextCust should point to 222
+>>> PRTNODE C111 
+	Alloc Address  Size Node Type Data Address  
+ 	0173A070        53      0     0173A075
+		Attr Name      Type Value     
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  00000000
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+*
+* 3. associate customer 111 to PPF001
+*    associate 222 to 333
+*
+>>> ASSOC C111 pFirstItem PPF001
+>>> PRTNODE C111
+	Alloc Address  Size Node Type Data Address  
+ 	0173A070        53      0     0173A075
+		Attr Name      Type Value     
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+>>> ALLOC C333 Customer 333,Misty Wind,NULL,NULL,70.00
+>>> ASSOC C222 pNextCust C333
+*
+* 4. print all:
+*    111 should point to 222 which points to 333
+*    111 should also point to PPF001
+*
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A134
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  70.000000
+	0173A134 Free   704
+			Next:00000000
+*
+* 5. add another customer
+*
+>>> ALLOC C444 Customer 444,Emory Board,NULL,NULL,44.44
+>>> ASSOC C333 pNextCust C444
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A169
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  44.440000
+	0173A169 Free   651
+			Next:00000000
+*
+* 6. Allocate another node and associate it with 222
+*    Allocate another line item and associate 555 to it
+*
+>>> ALLOC C555 Customer 555,Holly Graph,NULL,NULL,55.00
+>>> ASSOC C555 pNextCust C222
+>>> ALLOC SBB001 LineItem SBB001,2,19.95,NULL
+>>> ASSOC C555 pFirstItem SBB001
+*
+* 7. assoc the line items 
+*
+>>> ALLOC BOM001 LineItem BOM001,1,29.95,NULL
+>>> ASSOC SBB001 pNextItem BOM001
+*
+* 8. Allocate C666 and associate C444 to it.
+*
+>>> ALLOC C666 Customer 666,Bob L Head,NULL,NULL,66.00
+>>> ASSOC C444 pNextCust C666
+*
+* 9. Assoc C444 with a different customer (C777), 
+*    causing the old customer assoc (C666) to not be associated
+*
+>>> ALLOC C777 Customer 777,Flo N Water,NULL,NULL,77.00
+>>> ASSOC C444 pNextCust C777
+*
+* 10. Add many customers and line items
+*
+>>> ALLOC C888 Customer 888,Joe King,NULL,NULL,88.00
+>>> ALLOC C911 Customer 911,Lee King,NULL,NULL,91.00
+>>> ALLOC C922 Customer 922,Mae King,NULL,NULL,92.00
+>>> ALLOC MCW001 LineItem MCW001,1,12.45,NULL
+>>> ALLOC C933 Customer 933,Ray King,NULL,NULL,93.00
+>>> ALLOC C944 Customer 944,Freida King,NULL,NULL,94.00
+>>> ALLOC SSX001 LineItem SSX001,1,29.95,NULL
+>>> ASSOC MCW001 pNextItem SSX001
+>>> ALLOC TTP001 LineItem TTP001,2,9.95,NULL
+>>> DEREF SSX001
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A3CA
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 InUse   53   0      0173A1ED
+		customerId       S  666
+		name             S  Bob L Head
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  66.000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  888
+		name             S  Joe King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  88.000000
+	0173A287 InUse   53   0      0173A28C
+		customerId       S  911
+		name             S  Lee King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  91.000000
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 InUse   37   1      0173A2F6
+		productId        S  MCW001
+		iQtyReq          I  1
+		dCost            D  12.450000
+		pNextItem        P  0173A385
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA Free    42
+			Next:00000000
+*
+* 11. Allocate a node which causes the remaining 
+*     free space to be smaller than a minimum free node.
+*     We give NHC001 all of the free node's
+*     size as its size.
+>>> ALLOC NHC001 LineItem NHC001,1,9.95,NULL
+>>> DUMP
+Heap begins at 0173A070, free head is 00000000
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 InUse   53   0      0173A1ED
+		customerId       S  666
+		name             S  Bob L Head
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  66.000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  888
+		name             S  Joe King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  88.000000
+	0173A287 InUse   53   0      0173A28C
+		customerId       S  911
+		name             S  Lee King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  91.000000
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 InUse   37   1      0173A2F6
+		productId        S  MCW001
+		iQtyReq          I  1
+		dCost            D  12.450000
+		pNextItem        P  0173A385
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 12. Do a Garbage Collection ... should not collect anything
+* Note that SSX001 is still referenced by a linked list
+* from MCW001 so it shouldn't be freed.
+* 
+>>> DUMP
+Heap begins at 0173A070, free head is 00000000
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 InUse   53   0      0173A1ED
+		customerId       S  666
+		name             S  Bob L Head
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  66.000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  888
+		name             S  Joe King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  88.000000
+	0173A287 InUse   53   0      0173A28C
+		customerId       S  911
+		name             S  Lee King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  91.000000
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 InUse   37   1      0173A2F6
+		productId        S  MCW001
+		iQtyReq          I  1
+		dCost            D  12.450000
+		pNextItem        P  0173A385
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+>>> GCOLL
+>>> DUMP
+Heap begins at 0173A070, free head is 00000000
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 InUse   53   0      0173A1ED
+		customerId       S  666
+		name             S  Bob L Head
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  66.000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  888
+		name             S  Joe King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  88.000000
+	0173A287 InUse   53   0      0173A28C
+		customerId       S  911
+		name             S  Lee King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  91.000000
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 InUse   37   1      0173A2F6
+		productId        S  MCW001
+		iQtyReq          I  1
+		dCost            D  12.450000
+		pNextItem        P  0173A385
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 13. Remove our reference to the beginning of the linked list
+*     Do a Garbage Collection which will gain two free areas
+*
+>>> DEREF MCW001
+>>> GCOLL
+	Collecting 0173A2F1 
+	Collecting 0173A380 
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A380
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 InUse   53   0      0173A1ED
+		customerId       S  666
+		name             S  Bob L Head
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  66.000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  888
+		name             S  Joe King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  88.000000
+	0173A287 InUse   53   0      0173A28C
+		customerId       S  911
+		name             S  Lee King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  91.000000
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 Free    37
+			Next:00000000
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 Free    37
+			Next:0173A2F1
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 14. Remove some Hash Table references ... but some of these
+*     will still be referenced by user pointers
+*     Garbage Collection which should find C666 to collect:
+*        - finds 5 free nodes, but it combines two adjacent free nodes
+*        - result is FOUR free nodes 
+*
+>>> DEREF C888
+>>> DEREF C911
+>>> DEREF C333
+>>> DEREF C444
+>>> DEREF C666
+>>> GCOLL
+	Collecting 0173A1E8 
+	Combining  0173A252 with 0173A287 
+	Collecting 0173A287 
+	Collecting 0173A2F1 
+	Collecting 0173A380 
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A380
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 Free    53
+			Next:00000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  77.000000
+	0173A252 Free   106
+			Next:0173A1E8
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 Free    37
+			Next:0173A287
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 Free    37
+			Next:0173A2F1
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 15. Create a circular list, should not cause problems for GCOLL
+*     Do a Garbage Collection which shouldn't change anything
+*     but should verify that student's code doesn't infinite loop
+>>> ASSOC C777 pNextCust C222
+>>> DEREF C777
+>>> DEREF C222
+>>> GCOLL
+	Collecting 0173A1E8 
+	Collecting 0173A252 
+	Collecting 0173A2F1 
+	Collecting 0173A380 
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A380
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 Free    53
+			Next:00000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  0173A0AA
+		balance          D  77.000000
+	0173A252 Free   106
+			Next:0173A1E8
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 Free    37
+			Next:0173A252
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 Free    37
+			Next:0173A2F1
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 16. Allocate memory to grab some of that free space.
+*
+>>> ALLOC C955 Customer 955,Harry King,NULL,NULL,95.00
+>>> ALLOC SSX002 LineItem SSX002,1,29.25,NULL
+>>> ALLOC SSX003 LineItem SSX003,1,29.35,NULL
+>>> ALLOC SSX004 LineItem SSX004,1,29.45,NULL
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A2AC
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 Free    53
+			Next:00000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  0173A0AA
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  955
+		name             S  Harry King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  95.000000
+	0173A287 InUse   37   1      0173A28C
+		productId        S  SSX002
+		iQtyReq          I  1
+		dCost            D  29.250000
+		pNextItem        P  00000000
+	0173A2AC Free    16
+			Next:0173A380
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 Free    37
+			Next:0173A252
+	0173A316 InUse   53   0      0173A31B
+		customerId       S  933
+		name             S  Ray King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  93.000000
+	0173A34B InUse   53   0      0173A350
+		customerId       S  944
+		name             S  Freida King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  94.000000
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX004
+		iQtyReq          I  1
+		dCost            D  29.450000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+*
+* 17. Remove some pointers from the Hash table.
+*     32-bit: Collection should have one existing and gather three adj
+*     64-bit: Collection should have two existing and gather three adj 
+*  
+>>> DEREF C933
+>>> DEREF C944
+>>> DEREF SSX003
+>>> GCOLL
+	Collecting 0173A1E8 
+	Collecting 0173A2AC 
+	Combining  0173A2F1 with 0173A316 
+	Combining  0173A316 with 0173A34B 
+	Collecting 0173A34B 
+>>> DUMP
+Heap begins at 0173A070, free head is 0173A34B
+	Address  Mem   Size NodeType DataPointer
+	0173A070 InUse   53   0      0173A075
+		customerId       S  111
+		name             S  Sal A Mander
+		pFirstItem       P  0173A0DF
+		pNextCust        P  0173A0AA
+		balance          D  100.000000
+	0173A0A5 InUse   53   0      0173A0AA
+		customerId       S  222
+		name             S  Barb Wire
+		pFirstItem       P  00000000
+		pNextCust        P  0173A104
+		balance          D  200.000000
+	0173A0DA InUse   37   1      0173A0DF
+		productId        S  PPF001
+		iQtyReq          I  5
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A0FF InUse   53   0      0173A104
+		customerId       S  333
+		name             S  Misty Wind
+		pFirstItem       P  00000000
+		pNextCust        P  0173A139
+		balance          D  70.000000
+	0173A134 InUse   53   0      0173A139
+		customerId       S  444
+		name             S  Emory Board
+		pFirstItem       P  00000000
+		pNextCust        P  0173A222
+		balance          D  44.440000
+	0173A169 InUse   53   0      0173A16E
+		customerId       S  555
+		name             S  Holly Graph
+		pFirstItem       P  0173A1A3
+		pNextCust        P  0173A0AA
+		balance          D  55.000000
+	0173A19E InUse   37   1      0173A1A3
+		productId        S  SBB001
+		iQtyReq          I  2
+		dCost            D  19.950000
+		pNextItem        P  0173A1C8
+	0173A1C3 InUse   37   1      0173A1C8
+		productId        S  BOM001
+		iQtyReq          I  1
+		dCost            D  29.950000
+		pNextItem        P  00000000
+	0173A1E8 Free    53
+			Next:00000000
+	0173A21D InUse   53   0      0173A222
+		customerId       S  777
+		name             S  Flo N Water
+		pFirstItem       P  00000000
+		pNextCust        P  0173A0AA
+		balance          D  77.000000
+	0173A252 InUse   53   0      0173A257
+		customerId       S  955
+		name             S  Harry King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  95.000000
+	0173A287 InUse   37   1      0173A28C
+		productId        S  SSX002
+		iQtyReq          I  1
+		dCost            D  29.250000
+		pNextItem        P  00000000
+	0173A2AC Free    16
+			Next:0173A1E8
+	0173A2BC InUse   53   0      0173A2C1
+		customerId       S  922
+		name             S  Mae King
+		pFirstItem       P  00000000
+		pNextCust        P  00000000
+		balance          D  92.000000
+	0173A2F1 Free    90
+			Next:0173A2AC
+	0173A34B Free    53
+			Next:0173A316
+	0173A380 InUse   37   1      0173A385
+		productId        S  SSX004
+		iQtyReq          I  1
+		dCost            D  29.450000
+		pNextItem        P  00000000
+	0173A3A5 InUse   37   1      0173A3AA
+		productId        S  TTP001
+		iQtyReq          I  2
+		dCost            D  9.950000
+		pNextItem        P  00000000
+	0173A3CA InUse   42   1      0173A3CF
+		productId        S  NHC001
+		iQtyReq          I  1
+		dCost            D  9.950000
+		pNextItem        P  00000000
+
+

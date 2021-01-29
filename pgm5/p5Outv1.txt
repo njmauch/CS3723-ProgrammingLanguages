@@ -1,0 +1,56 @@
+Margins 5-70, FLOW=NO
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+    A queen, her son, and daughter are being held in   
+    the top room of a high tower. Outside their window is a   
+    pulley with a rope over it, and a basket at each end of the   
+    rope. The baskets are of equal weight. The one   
+    outside the window is empty, and the other   
+    on the ground contains a rock with a mass of 30   
+    kilograms. The rock serves as a counterweight.   
+                                                                    
+Margins 10-60, FLOW=NO
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+         A queen, her son, and daughter are being held in   
+         the top room of a high tower. Outside their window   
+         pulley with a rope over it, and a basket at each en  
+         rope. The baskets are of equal weight. The one   
+         outside the window is empty, and the other   
+         on the ground contains a rock with a mass of 30   
+         kilograms. The rock serves as a counterweight.   
+                                                     
+Margins 5-70, FLOW=YES
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+    A queen, her son, and daughter are being held in the top room of a   
+    high tower. Outside their window is a pulley with a rope over it,   
+    and a basket at each end of the rope. The baskets are of equal   
+    weight. The one outside the window is empty, and the other on the   
+    ground contains a rock with a mass of 30 kilograms. The rock   
+    serves as a counterweight.           
+Margins 10-60, FLOW=YES
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+         A queen, her son, and daughter are being held in   
+         the top room of a high tower. Outside their window   
+         is a pulley with a rope over it, and a basket at   
+         each end of the rope. The baskets are of equal   
+         weight. The one outside the window is empty, and   
+         the other on the ground contains a rock with a mass   
+         of 30 kilograms. The rock serves as a   
+         counterweight.               
+
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+    o Five Golden Rings   
+
+    o Four Colly Birds although sometimes   
+      known as calling birds   
+
+    o Three French Hens   
+
+    o Two Turtle Doves   
+
+    o A Partridge in a Pear Tree (why would   
+      you want a partridge in a pear tree)   

@@ -1,0 +1,92 @@
+;; p2Lisp.txt
+;; Written by Nathan Mauch
+;; Different functions with different uses written in lisp
+
+
+;; insertNth (L N insValue)
+;; inserts insValue at the nth spot in the list
+(defun insertNth (L N insValue)
+	(cond
+		( (NULL L) NIL)
+		( (< 0 N) (CONS (CAR L) (insertNth (CDR L) (1- N) insValue ) ) )
+		( (CONS insValue L) )
+	)
+)
+
+
+;; reverseTop (L)
+;; reverses a list at the high level entries
+(defun reverseTop (L)
+	(cond
+		( (NULL L) NIL)
+		(T (append (reverseTop (CDR L) ) (list (CAR L) ) ) )
+	)
+)	
+
+
+;; reverseAll (L)
+;; reverses at all levels of list passed in
+(defun reverseAll (L)
+	(if (ATOM L)
+	L
+	(append (reverseAll (CDR L ) ) (list (reverseAll (CAR L) ) ) )
+	)
+)
+
+;; removeNILTop (L)
+;; removes NIL values in list from the top level
+(defun removeNILTop (L)
+	(cond 
+		( (NULL L) NIL)
+		( (not (EQL (CAR L) 'NIL) ) (CONS (CAR L) (removeNILTop (CDR L) ) ) )
+		( (removeNILTop (CDR L) ) )
+	)
+)
+
+;; removeNILMost (L)
+;; removes NIL from any level
+;; If result of removing NIL gives a NIL, it is unnecessary to remove that NIL
+(defun removeNILMost (L)
+	(cond 
+		( (NULL L) NIL)
+		( (ATOM (CAR L) )
+		( COND ( (NULL (CAR L) ) (removeNILMost (CDR L) ) )
+		(T (CONS (CAR L) (removeNILMost (CDR L) ) ) ) ) 
+	)
+	(T (CONS (removeNILMost(CAR L) ) (removeNILMost(CDR L) ) ) )
+	)
+)
+
+;; palindrome (L)
+;; passed a list and returns T if list is a palindrome
+;; return NIL if not
+;; Only needs to be a palindrome at the top level
+(defun palindrome (L)
+	(setf reverse (reverseTop L) )
+	(EQUAL L reverse)
+)
+
+;; evalEach (L)
+;; evaluates each item in the list using the built-in EVAL function. 
+;; its functional value is the value of the last expression evaluated
+(defun evalEach (L)
+	(cond
+		( (not (NULL (CDR L) ) ) (EVAL (CAR L) ) )
+	)
+	(cond
+		( (NULL (CDR L) ) (EVAL (CAR L) ) )
+		(T (evalEach (CDR L) ) )
+	)
+)
+
+;; removeNILAll (L)
+;; removes any resulting NIL (except the single outermost)
+(defun removeNILAll (L)
+	(cond ( (ATOM L) L)
+		(T (let ( (CAR (removeNILAll (CAR L) ) )
+		(CDR (removeNILAll (CDR L) ) ) )
+		(if CAR
+			(CONS CAR CDR)
+			CDR) ) )
+	)
+)

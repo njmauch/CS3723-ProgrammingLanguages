@@ -1,0 +1,72 @@
+;;; p3LispRun.txt - run the student's code
+;;; Use set_isa to set the part of speech for each of the words.
+(set_isa article a an the)
+(set_isa noun boy dog ball Mickey Pluto Goofy Larry Rocky students mud banana home he bowl cheese girl )
+(set_isa verb pet sat threw taught ran ate has licked )
+(set_isa prep on of to in for at)
+(set_isa adjective brilliant large rancid Halloween smelly new sleeping many strange ripe happy scared)
+(cond ( doingExtra
+          (set_isa noun pet home costume people sad nap vacation mud)
+          (set_isa verb was made left barfed took slept dreamed were)
+          (set_isa subConjunction while after )
+))
+
+ ;;;
+ ;;; 1.  Subject Verb DirectObj  
+ ;;;
+ (processSentence '(The boy pet the dog )) 
+ (processSentence '(The dog ran home))
+ (processSentence '(Mickey ate a banana))
+ ;;;
+ ;;; 2.  Subject Verb [DirectObj] [Prep IndirectObj]  
+ ;;; 
+ (processSentence '(The boy threw the ball to the dog ))
+ (processSentence '(The dog sat on the boy )) 
+ (processSentence '(Larry taught brilliant students))
+ (processSentence '(Mickey ate a large bowl of rancid cheese))
+ (processSentence '(The smelly dog licked the happy boy))
+ (processSentence '(The strange boy threw a ripe banana at the scared girl)) 
+ ;;;
+ ;;; 3. Invalid sentences
+ ;;;
+ (processSentence '(The boy sat on the))
+ (processSentence '(Threw the ball at Mickey))
+ (processSentence '(dog the sat on the boy))
+ (processSentence '(Mickey threw the sat))
+ (processSentence '(Larry taught brilliant ))
+ (processSentence '(Larry taught students brilliant ))
+ ;;;
+ ;;; 4. Extra Credit #1 compound nouns and words being multiple p-o-s
+ ;;;
+ ;;; see if doing extra credit, return if not
+ (if (NULL doingExtra)
+    (abort))
+ (processSentence '(Mickey has a new pet))
+ (processSentence '(Mickey threw the ball to Pluto and Goofy))
+ (processSentence '(Larry and Rocky taught brilliant students))
+ (processSentence '(Mickey threw the new ball and mud at Larry))
+ (processsentence '(The pet barfed))
+ ;;;
+ ;;; 5. Invalid Extra Credit #1
+ ;;;
+ (processSentence '(Mickey threw the ball to Pluto and Goofy and sat ))
+ (processSentence '(Mickey threw the ball and tacos at Larry))
+ ;;;
+ ;;; 6. Extra Credit #2
+ ;;;
+ ;;; see if doing extra credit #2, return if not
+ (if (NOT(EQL doingExtra 'EC2))
+    (abort))
+ (processSentence '(While Mickey was home comma he made a Halloween costume ))
+ (processSentence '(After Goofy left comma many people were sad  ))
+ (processSentence '(While Mickey took a nap comma the smelly dog licked the new pet ))
+ (processSentence '(While Goofy was on vacation comma Pluto barfed on the sleeping pet ))
+ (processSentence '(While Mickey slept comma he dreamed))
+ ;;;
+ ;;; 7. Invalid Extra Credit #2
+ ;;;
+ (processSentence '(While comma he made a Halloween costume ))
+ (processSentence '(While Mickey comma he made a Halloween costume ))
+  
+ 
+ 
