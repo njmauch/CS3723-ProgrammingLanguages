@@ -1,0 +1,136 @@
+* 0. See if Heap is one huge node
+*
+DUMP 
+* 1. Allocate three nodes
+ALLOC C111 Customer 111,Sal A Mander,NULL,NULL,100.00
+PRTNODE C111
+ALLOC C222 Customer 222,Barb Wire,NULL,NULL,200.00
+ALLOC PPF001 LineItem PPF001,5,9.95,NULL
+DUMP
+*
+* 2. associate customer 111 with a next pointing to 222
+*
+ASSOC C111 pNextCust C222
+* customer 111's  pNextCust should point to 222
+PRTNODE C111 
+*
+* 3. associate customer 111 to PPF001
+*    associate 222 to 333
+*
+ASSOC C111 pFirstItem PPF001
+PRTNODE C111
+ALLOC C333 Customer 333,Misty Wind,NULL,NULL,70.00
+ASSOC C222 pNextCust C333
+*
+* 4. print all:
+*    111 should point to 222 which points to 333
+*    111 should also point to PPF001
+*
+DUMP
+*
+* 5. add another customer
+*
+ALLOC C444 Customer 444,Emory Board,NULL,NULL,44.44
+ASSOC C333 pNextCust C444
+DUMP
+*
+* 6. Allocate another node and associate it with 222
+*    Allocate another line item and associate 555 to it
+*
+ALLOC C555 Customer 555,Holly Graph,NULL,NULL,55.00
+ASSOC C555 pNextCust C222
+ALLOC SBB001 LineItem SBB001,2,19.95,NULL
+ASSOC C555 pFirstItem SBB001
+*
+* 7. assoc the line items 
+*
+ALLOC BOM001 LineItem BOM001,1,29.95,NULL
+ASSOC SBB001 pNextItem BOM001
+*
+* 8. Allocate C666 and associate C444 to it.
+*
+ALLOC C666 Customer 666,Bob L Head,NULL,NULL,66.00
+ASSOC C444 pNextCust C666
+*
+* 9. Assoc C444 with a different customer (C777), 
+*    causing the old customer assoc (C666) to not be associated
+*
+ALLOC C777 Customer 777,Flo N Water,NULL,NULL,77.00
+ASSOC C444 pNextCust C777
+*
+* 10. Add many customers and line items
+*
+ALLOC C888 Customer 888,Joe King,NULL,NULL,88.00
+ALLOC C911 Customer 911,Lee King,NULL,NULL,91.00
+ALLOC C922 Customer 922,Mae King,NULL,NULL,92.00
+ALLOC MCW001 LineItem MCW001,1,12.45,NULL
+ALLOC C933 Customer 933,Ray King,NULL,NULL,93.00
+ALLOC C944 Customer 944,Freida King,NULL,NULL,94.00
+ALLOC SSX001 LineItem SSX001,1,29.95,NULL
+ASSOC MCW001 pNextItem SSX001
+ALLOC TTP001 LineItem TTP001,2,9.95,NULL
+DEREF SSX001
+DUMP
+*
+* 11. Allocate a node which causes the remaining 
+*     free space to be smaller than a minimum free node.
+*     We give NHC001 all of the free node's
+*     size as its size.
+ALLOC NHC001 LineItem NHC001,1,9.95,NULL
+DUMP
+*
+* 12. Do a Garbage Collection ... should not collect anything
+* Note that SSX001 is still referenced by a linked list
+* from MCW001 so it shouldn't be freed.
+* 
+DUMP
+GCOLL
+DUMP
+*
+* 13. Remove our reference to the beginning of the linked list
+*     Do a Garbage Collection which will gain two free areas
+*
+DEREF MCW001
+GCOLL
+DUMP
+*
+* 14. Remove some Hash Table references ... but some of these
+*     will still be referenced by user pointers
+*     Garbage Collection which should find C666 to collect:
+*        - finds 5 free nodes, but it combines two adjacent free nodes
+*        - result is FOUR free nodes 
+*
+DEREF C888
+DEREF C911
+DEREF C333
+DEREF C444
+DEREF C666
+GCOLL
+DUMP
+*
+* 15. Create a circular list, should not cause problems for GCOLL
+*     Do a Garbage Collection which shouldn't change anything
+*     but should verify that student's code doesn't infinite loop
+ASSOC C777 pNextCust C222
+DEREF C777
+DEREF C222
+GCOLL
+DUMP
+*
+* 16. Allocate memory to grab some of that free space.
+*
+ALLOC C955 Customer 955,Harry King,NULL,NULL,95.00
+ALLOC SSX002 LineItem SSX002,1,29.25,NULL
+ALLOC SSX003 LineItem SSX003,1,29.35,NULL
+ALLOC SSX004 LineItem SSX004,1,29.45,NULL
+DUMP
+*
+* 17. Remove some pointers from the Hash table.
+*     32-bit: Collection should have one existing and gather three adj
+*     64-bit: Collection should have two existing and gather three adj 
+*  
+DEREF C933
+DEREF C944
+DEREF SSX003
+GCOLL
+DUMP

@@ -1,0 +1,6 @@
+﻿  cs3723p1.c
+cs3723p1Driver.obj : error LNK2019: unresolved external symbol "void __cdecl printNode(struct GCManager *,void *,int,int)" (?printNode@@YAXPAUGCManager@@PAXHH@Z) referenced in function "void __cdecl drDump(struct GCManager *)" (?drDump@@YAXPAUGCManager@@@Z)
+cs3723p1Driver.obj : error LNK2019: unresolved external symbol "void * __cdecl getHash(char const *)" (?getHash@@YAPAXPBD@Z) referenced in function "void __cdecl processCommands(struct GCManager *,struct _iobuf *)" (?processCommands@@YAXPAUGCManager@@PAU_iobuf@@@Z)
+cs3723p1Driver.obj : error LNK2019: unresolved external symbol "void __cdecl putHash(char const *,void *)" (?putHash@@YAXPBDPAX@Z) referenced in function "void __cdecl processCommands(struct GCManager *,struct _iobuf *)" (?processCommands@@YAXPAUGCManager@@PAU_iobuf@@@Z)
+cs3723p1Driver.obj : error LNK2019: unresolved external symbol "void __cdecl getAll(struct HashMO *)" (?getAll@@YAXPAUHashMO@@@Z) referenced in function "void __cdecl drGarbageCollection(struct GCManager *,struct GCResult *)" (?drGarbageCollection@@YAXPAUGCManager@@PAUGCResult@@@Z)
+C:\Users\njmau\source\repos\cs3723p1\Debug\cs3723p1.exe : fatal error LNK1120: 4 unresolved externals
